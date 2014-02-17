@@ -1,0 +1,37 @@
+
+body {
+    margin: 0 auto;
+    width:800px;
+    /*border:1px solid;*/
+}
+.slider{
+    margin:30px auto;
+    border: solid black;
+    overflow: hidden;
+    width:615px;
+}
+
+.index-panel {
+    /*width:560px;*/
+    text-align: center;
+    margin:0 auto;
+}
+
+.index-img {
+    width:560px;
+}
+
+ul {
+    width:4000px;
+    padding:0px;
+}
+
+ul li {
+    display: inline;
+    list-style-type: none;
+    /*width:200px;*/
+}
+
+.slider li[name='photo_item'] img {
+    width:150px;
+}
