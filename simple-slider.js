@@ -4,7 +4,9 @@
 
 /**
  * TODO
- * indexPanel 기능 추가
+ * 좌우 버튼 눌렀을때 indexImg 변경
+ * 진행중 : 아이템 직접 눌렀을때 index 변경
+ * 현재는 index 패널이 img에만 특화되어 있는데, 이걸 div 같은 태그로 일반화 시킬것
  * autoSlide
  */
 
@@ -49,31 +51,30 @@ if ( typeof Object.create !== 'function' ) {
             self.components = {};
             self.components.slider = $(elem);   // 할당 안해도 영향 없음
 
-            // 슬라이더를 구성하는 요소들을 select : 현재 slider 내부의 selector들에 대해 먼저 find하고, 해당 element가 없는 경우에는 전체 document를 대상으로 select
             self.components.itemContainer = $(elem).find(self.options.itemContainerSelector);
-            if (self.components.itemContainer.length === 0) {
-                self.components.itemContainer = $(self.options.itemContainerSelector);
-            }
+//            if (self.components.itemContainer.length === 0) {
+//                self.components.itemContainer = $(self.options.itemContainerSelector);
+//            }
 
             self.components.items = $(elem).find(self.options.itemSelector);
-            if (self.components.items.length === 0) {
-                self.components.items = $(self.options.itemSelector);
-            }
+//            if (self.components.items.length === 0) {
+//                self.components.items = $(self.options.itemSelector);
+//            }
 
-            self.components.indexPanel = $(elem).find(self.options.indexPanelSelector);
-            if (self.components.indexPanel.length === 0) {
-                self.components.indexPanel = $(self.options.indexPanelSelector);
-            }
+            self.components.indexImg = $(elem).find(self.options.indexImgSelector);
+//            if (self.components.indexImg.length === 0) {
+//                self.components.indexImg = $(self.options.indexImgSelector);
+//            }
 
             self.components.prevButton = $(elem).find(self.options.prevButtonSelector);
-            if (self.components.prevButton.length == 0) {
-                self.components.prevButton = $(self.options.prevButtonSelector);
-            }
+//            if (self.components.prevButton.length == 0) {
+//                self.components.prevButton = $(self.options.prevButtonSelector);
+//            }
 
             self.components.nextButton = $(elem).find(self.options.nextButtonSelector);
-            if (self.components.nextButton.length == 0) {
-                self.components.nextButton = $(self.options.nextButtonSelector);
-            }
+//            if (self.components.nextButton.length == 0) {
+//                self.components.nextButton = $(self.options.nextButtonSelector);
+//            }
 
             if (self.options.pageMode === true) {
                 self.setCurrentPage(1); // 페이지는 1부터 시작
@@ -86,7 +87,7 @@ if ( typeof Object.create !== 'function' ) {
 
             var self = this;
 
-            if (typeof self.components.prevButton === "object") {
+            if (self.components.prevButton.length > 0) {
 
                 if (self.options.pageMode === true) {
 
@@ -117,7 +118,7 @@ if ( typeof Object.create !== 'function' ) {
                 }
             }
 
-            if (typeof self.components.nextButton === "object") {
+            if (self.components.nextButton.length > 0) {
 
                 if (self.options.pageMode === true) {
 
@@ -142,16 +143,24 @@ if ( typeof Object.create !== 'function' ) {
                             click: function() {
                                 self.moveToNextItem();
                             }
-                        })
+                        });
                     }
-
                 }
+            }
+
+            if (self.components.indexImg.length > 0) {
+                self.components.items.find("img").on({
+                    click: function() {
+                        self.components.indexImg.attr('src', $(this).attr('src'));
+                        console.log($(this).attr('src'));
+                    }
+                });
             }
         },
 
         setCurrentItem: function(index) {
 
-            // TODO : 미완성, indexPanel 있을때만 호출되는 메서드
+            // TODO : 미완성, indexImg 있을때만 호출되는 메서드
             var self = this;
 
             self.transition();
@@ -282,7 +291,7 @@ if ( typeof Object.create !== 'function' ) {
         itemContainerSelector: "ul",    // 슬라이드들을 감사고 있는 container. 이 element의 margin-left를 변경시키는 방법으로 노출될 아이템들이 결정됨
         prevButtonSelector: ".prev",    // "이전" 버튼
         nextButtonSelector: ".next",    // "다음" 버튼
-        indexPanelSelector: ".index-panel", // 선택된 아이템들을 크게 보여주는 panel (아직 구현되지 않았음)
+        indexImgSelector: ".index-img", // 선택된 아이템들을 크게 보여주는 panel (아직 구현되지 않았음)
 
         // auto slide 기능 : 아직 구현되지 않았음
         autoSlide: false,
