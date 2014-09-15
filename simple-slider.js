@@ -6,6 +6,7 @@
  *
  * TODO : 수정 우선순위
  * 번호 선택시 selectedItemView 컨텐츠 변경하는 기능 추가 (이걸 어떻게 결합시킬것인지 고민해야함)
+ * indexItemView 의 Fade In/Out 효과 적용도 옵션으로 추가.
  * 아이템 직접 눌렀을때 selectedItemView 변경
  * autoSlide
  * setCurrentPage 등의 함수들의 edge 값 검사후 제한 값 넘어가지 않도록 확실히 제한.
@@ -205,7 +206,6 @@ if ( typeof Object.create !== 'function' ) {
 
                         $.each(self.components.itemDelegates, function() {
                             if (that === this) {
-                                // 해당 delegat 에 해당하는 item 을 선택하도록 조치
                                 self.setCurrentPage(i+1);
                                 return false;
                             }
