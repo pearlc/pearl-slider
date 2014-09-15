@@ -137,14 +137,11 @@
 <script>
 
     $(".slider").simpleSlider({
-        // indexImgSelector: ".index-img",
         selectedItemViewSelector: ".selected-item-panel",
         prevButtonSelector: ".prev",
         nextButtonSelector: ".next",
         continuous: true,
-        itemSelectCallback: function(item, components) {  // 인자명을 components 말고 slider 로 바꾸는게 더 직관적이지 않나?
-
-            // TODO : 여기부터 계속 할것. this 문제로 인해 제대로 동작하지 않음.
+        itemSelectCallback: function(item, components) {
             components.selectedItemView.find('img').attr('src', $(item).attr('src'));
             console.log($(item).attr('src'));
             console.log('overritten callback');

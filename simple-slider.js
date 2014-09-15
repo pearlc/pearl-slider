@@ -4,17 +4,16 @@
 
 /**
  *
- * 수정 우선순위
- * 이름 변경
- * 현재는 index 패널이 img에만 특화되어 있는데, 이걸 div 같은 태그로 일반화 시킬것. callback 함수 등록 기능 추가
- * selectedItem 으로 이름 변경 및 해당 기능 추가 (아이템 눌렀을때 selectedItem 변경시키는 기능)
- *
- *
- * TODO
- * 번호로 직접 접근하는 기능 추가 (이걸 어떻게 결합시킬것인지 고민해야함)
- * 좌우 버튼 눌렀을때 indexImg 변경
- * 진행중 : 아이템 직접 눌렀을때 index 변경
+ * TODO : 수정 우선순위
+ * 번호 선택시 selectedItemView 컨텐츠 변경하는 기능 추가 (이걸 어떻게 결합시킬것인지 고민해야함)
+ * 아이템 직접 눌렀을때 selectedItemView 변경
  * autoSlide
+ * 현재는 index 패널이 img에만 특화되어 있는데, 이걸 div 같은 태그로 일반화 시킬것. callback 함수 등록 기능 추가
+ * selectedItemView 기능 추가 (아이템 눌렀을때 selectedItem 변경시키는 기능)
+ * 좌우 버튼 눌렀을때 selectedItemView 변경 <- 이게 필요한 경우가 있는가? 옵션으로
+ * 콜백 커스터마이징시 인자명을 components 말고 slider 로 바꾸는게 더 직관적이지 않나?
+ *
+ *
  */
 
 // Utility for creating objects in older browsers
@@ -196,7 +195,7 @@ if ( typeof Object.create !== 'function' ) {
 
         setCurrentItem: function(index) {
 
-            // TODO : 미완성, indexImg 있을때만 호출되는 메서드
+            // TODO : 미완성, selectedItemView 있을때만 호출되는 메서드
             var self = this;
 
             self.transition();
