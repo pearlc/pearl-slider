@@ -45,7 +45,60 @@
     </ul>
 </div>
 
-<div id="slider-2" class="slider">
+<div id="slider-2" class="slider graves">
+    <h1>그레이브스</h1>
+    <span>hi</span>
+
+    <!--<div class="selected-item-panel">-->
+        <!--<img class="selected-item-img" src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Graves_0.jpg" />-->
+    <!--</div>-->
+
+    <span name="prev" class="prev" style=""><em>이전</em></span>
+    <span name="next" class="next" style=""><em>다음</em></span>
+    <ul>
+        <li name="photo_item">
+            <a href="http://www.leagueoflegends.co.kr">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Graves_0.jpg" />
+            </a>
+        </li>
+        <li name="photo_item">
+            <a href="http://www.naver.co.kr">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Graves_1.jpg" />
+            </a>
+        </li>
+        <li name="photo_item">
+            <a href="http://www.leagueoflegends.co.kr">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Graves_2.jpg" />
+            </a>
+        </li>
+        <li name="photo_item">
+            <a href="http://www.leagueoflegends.co.kr">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Graves_3.jpg" />
+            </a>
+        </li>
+        <li name="photo_item">
+            <a href="http://www.leagueoflegends.co.kr">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Graves_4.jpg" />
+            </a>
+        </li>
+        <li name="photo_item">
+            <a href="http://www.leagueoflegends.co.kr">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Graves_5.jpg" />
+            </a>
+        </li>
+    </ul>
+
+    <div>
+        <a class="item-delegates" href="#">1</a>
+        <a class="item-delegates" href="#">2</a>
+        <a class="item-delegates" href="#">3</a>
+        <a class="item-delegates" href="#">4</a>
+        <a class="item-delegates" href="#">5</a>
+        <a class="item-delegates" href="#">6</a>
+    </div>
+</div>
+
+<div id="slider-3" class="slider">
     <h1>티모/라이즈</h1>
 
     <!--<div class="index-panel">-->
@@ -95,11 +148,10 @@
         <li name="photo_item">
             <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ryze_4.jpg" />
         </li>
-
     </ul>
 </div>
 
-<div id="slider-3" class="slider">
+<div id="slider-4" class="slider">
     <h1>라이즈</h1>
     <span name="prev" class="prev" style=""><em>이전</em></span>
     <span name="next" class="next" style=""><em>다음</em></span>
@@ -136,11 +188,25 @@
 
 <script>
 
-    $(".slider").simpleSlider({
+    $("#slider-1, #slider-3, #slider-4").simpleSlider({
         selectedItemViewSelector: ".selected-item-panel",
         prevButtonSelector: ".prev",
         nextButtonSelector: ".next",
         continuous: true,
+        itemSelectCallback: function(item, components) {
+            components.selectedItemView.find('img').attr('src', $(item).attr('src'));
+            console.log($(item).attr('src'));
+            console.log('overritten callback');
+        }
+    });
+
+    $("#slider-2").simpleSlider({
+        selectedItemViewSelector: ".selected-item-panel",
+        prevButtonSelector: ".prev",
+        nextButtonSelector: ".next",
+        continuous: true,
+        itemCountPerPage: 1,
+
         itemSelectCallback: function(item, components) {
             components.selectedItemView.find('img').attr('src', $(item).attr('src'));
             console.log($(item).attr('src'));

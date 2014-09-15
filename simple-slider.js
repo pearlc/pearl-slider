@@ -8,6 +8,9 @@
  * 번호 선택시 selectedItemView 컨텐츠 변경하는 기능 추가 (이걸 어떻게 결합시킬것인지 고민해야함)
  * 아이템 직접 눌렀을때 selectedItemView 변경
  * autoSlide
+ * setCurrentPage 등의 함수들의 edge 값 검사후 제한 값 넘어가지 않도록 확실히 제한.
+ * 각 elements 들의 default 값들이 reasonable 한지 따져볼것
+ * 오류처리 : 절대 두개가 되면 안되는 것들에 대해 select 후 적절한 오류메시지 출력 (예를들면 itemContainerSelector 를 가져와 보니 두개 이상이라던가.. 이런 경우)
  * 현재는 index 패널이 img에만 특화되어 있는데, 이걸 div 같은 태그로 일반화 시킬것. callback 함수 등록 기능 추가
  * selectedItemView 기능 추가 (아이템 눌렀을때 selectedItem 변경시키는 기능)
  * 좌우 버튼 눌렀을때 selectedItemView 변경 <- 이게 필요한 경우가 있는가? 옵션으로
@@ -44,6 +47,7 @@ if ( typeof Object.create !== 'function' ) {
         nextButtonSelector: ".next",    // "다음" 버튼
         selectedItemViewSelector: ".selected-item-view", // 선택된 아이템들을 크게 보여주는 panel (아직 완전히 구현되지 않았음)
         itemSelectCallback: null,
+        itemDelegatesSelector: ".item-delegates",   // 각 아이템의 넘버링 (클릭시 index 를 해당 delegates의 번호에 맞게 변경 해주는 역할)
 
         // auto slide 기능 : 아직 구현되지 않았음
         autoSlide: false,
@@ -72,7 +76,7 @@ if ( typeof Object.create !== 'function' ) {
 
             self.options = $.extend({}, $.fn.simpleSlider.options, options);
 
-            self.build(elem);
+            self.bindComponents(elem);
 
             self.itemCount = self.components.items.length;
 
@@ -85,10 +89,10 @@ if ( typeof Object.create !== 'function' ) {
                 self.lastPage = Math.max(1, parseInt( (self.itemCount - 1) / self.options.itemCountPerPage) + 1);
             }
 
-            self.events();
+            self.registerEventHandlers();
         },
 
-        build: function(elem) {
+        bindComponents: function(elem) {
             var self = this;
 
             self.components = {};
@@ -98,7 +102,9 @@ if ( typeof Object.create !== 'function' ) {
             self.components.selectedItemView = $(elem).find(self.options.selectedItemViewSelector);
             self.components.prevButton = $(elem).find(self.options.prevButtonSelector);
             self.components.nextButton = $(elem).find(self.options.nextButtonSelector);
+            self.components.itemDelegates = $(elem).find(self.options.itemDelegatesSelector);
 
+            // TODO : 이 로직 다른 곳으로 옮길것 (initPagination 같은 함수 만들어서 이동?)
             if (self.options.pageMode === true) {
                 self.setCurrentPage(1); // 페이지는 1부터 시작
             } else {
@@ -106,7 +112,7 @@ if ( typeof Object.create !== 'function' ) {
             }
         },
 
-        events: function() {
+        registerEventHandlers: function() {
 
             var self = this;
 
@@ -185,11 +191,30 @@ if ( typeof Object.create !== 'function' ) {
                     self.components.items.find("img").on({
                         click: function() {
                             self.components.selectedItemView.find('img').attr('src', $(this).attr('src'));
-                            console.log($(this).attr('src'));
-                            console.log('hi');
                         }
                     });
                 }
+            }
+
+            if (self.components.itemDelegates.length > 0) {
+                self.components.itemDelegates.on({
+                    click: function() {
+
+                        var that = this,
+                            i = 0;
+
+                        $.each(self.components.itemDelegates, function() {
+                            if (that === this) {
+                                // 해당 delegat 에 해당하는 item 을 선택하도록 조치
+                                self.setCurrentPage(i+1);
+                                return false;
+                            }
+
+                            i++;
+                        });
+                        return false;
+                    }
+                });
             }
         },
 
