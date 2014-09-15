@@ -11,13 +11,13 @@ body {
     width:615px;
 }
 
-.index-panel {
+.selected-item-panel {
     /*width:560px;*/
     text-align: center;
     margin:0 auto;
 }
 
-.index-img {
+.selected-item-img {
     width:560px;
 }
 

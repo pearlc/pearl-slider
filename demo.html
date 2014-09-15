@@ -14,8 +14,8 @@
 <div id="slider-1" class="slider">
     <h1>가렌</h1>
 
-    <div class="index-panel">
-        <img class="index-img" src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Garen_0.jpg" />
+    <div class="selected-item-panel">
+        <img class="selected-item-img" src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Garen_0.jpg" />
     </div>
 
     <span name="prev" class="prev" style=""><em>이전</em></span>
@@ -137,10 +137,18 @@
 <script>
 
     $(".slider").simpleSlider({
-        indexImgSelector: ".index-img",
+        // indexImgSelector: ".index-img",
+        selectedItemViewSelector: ".selected-item-panel",
         prevButtonSelector: ".prev",
         nextButtonSelector: ".next",
-        continuous: true
+        continuous: true,
+        itemSelectCallback: function(item, components) {  // 인자명을 components 말고 slider 로 바꾸는게 더 직관적이지 않나?
+
+            // TODO : 여기부터 계속 할것. this 문제로 인해 제대로 동작하지 않음.
+            components.selectedItemView.find('img').attr('src', $(item).attr('src'));
+            console.log($(item).attr('src'));
+            console.log('overritten callback');
+        }
     });
 </script>
 </html>

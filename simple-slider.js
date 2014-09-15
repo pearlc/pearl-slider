@@ -3,10 +3,17 @@
  */
 
 /**
+ *
+ * 수정 우선순위
+ * 이름 변경
+ * 현재는 index 패널이 img에만 특화되어 있는데, 이걸 div 같은 태그로 일반화 시킬것. callback 함수 등록 기능 추가
+ * selectedItem 으로 이름 변경 및 해당 기능 추가 (아이템 눌렀을때 selectedItem 변경시키는 기능)
+ *
+ *
  * TODO
+ * 번호로 직접 접근하는 기능 추가 (이걸 어떻게 결합시킬것인지 고민해야함)
  * 좌우 버튼 눌렀을때 indexImg 변경
  * 진행중 : 아이템 직접 눌렀을때 index 변경
- * 현재는 index 패널이 img에만 특화되어 있는데, 이걸 div 같은 태그로 일반화 시킬것
  * autoSlide
  */
 
@@ -20,6 +27,43 @@ if ( typeof Object.create !== 'function' ) {
 }
 
 (function( $, window, document, undefined ) {
+
+    $.fn.simpleSlider = function( options ) {
+        return this.each(function() {
+
+            var slider = Object.create( Slider );
+            slider.init( options, this );
+
+        });
+    };
+
+    $.fn.simpleSlider.options = {
+
+        itemSelector: "li",     // 슬라이드 대상이 되는 아이템들
+        itemContainerSelector: "ul",    // 슬라이드들을 감사고 있는 container. 이 element의 margin-left를 변경시키는 방법으로 노출될 아이템들이 결정됨
+        prevButtonSelector: ".prev",    // "이전" 버튼
+        nextButtonSelector: ".next",    // "다음" 버튼
+        selectedItemViewSelector: ".selected-item-view", // 선택된 아이템들을 크게 보여주는 panel (아직 완전히 구현되지 않았음)
+        itemSelectCallback: null,
+
+        // auto slide 기능 : 아직 구현되지 않았음
+        autoSlide: false,
+        autoSliderDirection: 'right',
+        autoSlideInterval: 7000,
+        autoSlideControls: false,
+        autoSlideStartText: 'Start',
+        autoSlideStopText: 'Stop',
+        autoSlideStopWhenClicked: true,
+
+        continuous: true,   // 슬라이드가 끝에 도달했을때, 제일 처음으로 이어질건지 결정하는 flag
+
+        slideEaseDuration: 500,
+        slideEaseFunction: "swing",  // easeInOutExpo
+
+        // Pagination 관련 옵션
+        itemCountPerPage: 4, // 한 페이지당 노출될 아이템 개수
+        pageMode: true //  페이지 모드
+    };
 
     var Slider = {
 
@@ -49,32 +93,12 @@ if ( typeof Object.create !== 'function' ) {
             var self = this;
 
             self.components = {};
-            self.components.slider = $(elem);   // 할당 안해도 영향 없음
-
+            self.components.slider = $(elem);   // 콜백 함수들에 slider 인자를 전달하기 위해 사용 <- 맞나?
             self.components.itemContainer = $(elem).find(self.options.itemContainerSelector);
-//            if (self.components.itemContainer.length === 0) {
-//                self.components.itemContainer = $(self.options.itemContainerSelector);
-//            }
-
             self.components.items = $(elem).find(self.options.itemSelector);
-//            if (self.components.items.length === 0) {
-//                self.components.items = $(self.options.itemSelector);
-//            }
-
-            self.components.indexImg = $(elem).find(self.options.indexImgSelector);
-//            if (self.components.indexImg.length === 0) {
-//                self.components.indexImg = $(self.options.indexImgSelector);
-//            }
-
+            self.components.selectedItemView = $(elem).find(self.options.selectedItemViewSelector);
             self.components.prevButton = $(elem).find(self.options.prevButtonSelector);
-//            if (self.components.prevButton.length == 0) {
-//                self.components.prevButton = $(self.options.prevButtonSelector);
-//            }
-
             self.components.nextButton = $(elem).find(self.options.nextButtonSelector);
-//            if (self.components.nextButton.length == 0) {
-//                self.components.nextButton = $(self.options.nextButtonSelector);
-//            }
 
             if (self.options.pageMode === true) {
                 self.setCurrentPage(1); // 페이지는 1부터 시작
@@ -148,13 +172,25 @@ if ( typeof Object.create !== 'function' ) {
                 }
             }
 
-            if (self.components.indexImg.length > 0) {
-                self.components.items.find("img").on({
-                    click: function() {
-                        self.components.indexImg.attr('src', $(this).attr('src'));
-                        console.log($(this).attr('src'));
-                    }
-                });
+            // 일반화 시킨후 분리할것 (콜백 함수로 replace 가능하도록 수정)
+            if (self.components.selectedItemView.length > 0) {
+
+                if (self.options.itemSelectCallback !== null) {
+                    self.components.items.find("img").on({
+                        click: function() {
+                            self.options.itemSelectCallback(this, self.components);
+                        }
+                    });
+                } else {
+
+                    self.components.items.find("img").on({
+                        click: function() {
+                            self.components.selectedItemView.find('img').attr('src', $(this).attr('src'));
+                            console.log($(this).attr('src'));
+                            console.log('hi');
+                        }
+                    });
+                }
             }
         },
 
@@ -275,41 +311,5 @@ if ( typeof Object.create !== 'function' ) {
 
         }
     }
-
-    $.fn.simpleSlider = function( options ) {
-        return this.each(function() {
-
-            var slider = Object.create( Slider );
-            slider.init( options, this );
-
-        });
-    };
-
-    $.fn.simpleSlider.options = {
-
-        itemSelector: "li",     // 슬라이드 대상이 되는 아이템들
-        itemContainerSelector: "ul",    // 슬라이드들을 감사고 있는 container. 이 element의 margin-left를 변경시키는 방법으로 노출될 아이템들이 결정됨
-        prevButtonSelector: ".prev",    // "이전" 버튼
-        nextButtonSelector: ".next",    // "다음" 버튼
-        indexImgSelector: ".index-img", // 선택된 아이템들을 크게 보여주는 panel (아직 구현되지 않았음)
-
-        // auto slide 기능 : 아직 구현되지 않았음
-        autoSlide: false,
-        autoSliderDirection: 'right',
-        autoSlideInterval: 7000,
-        autoSlideControls: false,
-        autoSlideStartText: 'Start',
-        autoSlideStopText: 'Stop',
-        autoSlideStopWhenClicked: true,
-
-        continuous: true,   // 슬라이드가 끝에 도달했을때, 제일 처음으로 이어질건지 결정하는 flag
-
-        slideEaseDuration: 500,
-        slideEaseFunction: "swing",  // easeInOutExpo
-
-        itemCountPerPage: 4, // 한 페이지당 노출될 아이템 개수
-        pageMode: true //  페이지 모드
-
-    };
 
 })(jQuery, window, document);
