@@ -40,7 +40,27 @@ ul li {
     width: 621px;
 }
 
-/** slider-2 **/
-#slider-2 {
+#slider-1 {
 
+}
+
+/** slider-2 **/
+/** fade in / out 효과를 위한 스타일 **/
+#slider-2 ul.photo-container {
+    /*height: 1080px;*/
+    position: relative;
+    /*top: 0;*/
+    /*width: 100%;*/
+    /*z-index: 0;*/
+
+    height:366px;
+}
+
+#slider-2 li[name=photo_item] {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    opacity: 0;
+    /*display: none;*/
+    height: 366px;
 }

@@ -47,11 +47,12 @@ if ( typeof Object.create !== 'function' ) {
 
         // 구성 요소들
         itemSelector: "li",     // 슬라이드 대상이 되는 아이템들
-        itemContainerSelector: "ul",    // 슬라이드들을 감사고 있는 container. 이 element의 margin-left를 변경시키는 방법으로 노출될 아이템들이 결정됨
+        itemContainerSelector: "ul:first",    // 슬라이드들을 감사고 있는 container. 이 element의 margin-left를 변경시키는 방법으로 노출될 아이템들이 결정됨
         prevButtonSelector: ".prev",    // "이전" 버튼
         nextButtonSelector: ".next",    // "다음" 버튼
         selectedItemViewSelector: ".selected-item-view", // 선택된 아이템들을 크게 보여주는 panel (아직 완전히 구현되지 않았음)
-//        itemDelegatesSelector: ".item-delegates",   // 각 아이템의 넘버링 (클릭시 index 를 해당 delegates의 번호에 맞게 변경 해주는 역할)
+        delegatesListSelector: ".delegates-list",
+        delegatesItemSelector: ".delegates-item",   // 각 아이템의 넘버링 (클릭시 index 를 해당 delegates의 번호에 맞게 변경 해주는 역할)
 
         // auto slide 기능 : 아직 구현되지 않았음 (selectedItem 을 바꾸는 오토 슬라이드? 아니면 페이징 오토 슬라이드?)
         autoSlide: false,
@@ -112,6 +113,8 @@ if ( typeof Object.create !== 'function' ) {
             }
 
             self.registerEventHandlers();
+
+            self.setStartStatus();
         },
 
         bindComponents: function(elem) {
@@ -124,14 +127,10 @@ if ( typeof Object.create !== 'function' ) {
             self.components.selectedItemView = $(elem).find(self.options.selectedItemViewSelector);
             self.components.prevButton = $(elem).find(self.options.prevButtonSelector);
             self.components.nextButton = $(elem).find(self.options.nextButtonSelector);
-//            self.components.itemDelegates = $(elem).find(self.options.itemDelegatesSelector);
+            self.components.delegatesList = $(elem).find(self.options.delegatesListSelector);
+            self.components.delegatesItem = $(elem).find(self.options.delegatesItemSelector);
 
-            // TODO : 이 로직 다른 곳으로 옮길것 (initPagination 같은 함수 만들어서 이동?)
-            if (self.options.pageMode === true) {
-                self.setCurrentPage(1); // 페이지는 1부터 시작
-            } else {
-                self.setCurrentItemIndex(0);    // index는 0부터 시작
-            }
+//            console.log(self.components.items);
         },
 
         registerEventHandlers: function() {
@@ -150,32 +149,36 @@ if ( typeof Object.create !== 'function' ) {
                 self.components.items.on('click', {slider:self}, self.itemPressedEventHandler);
             }
 
-
-            /*
-            if (self.components.itemDelegates.length > 0) {
-                self.components.itemDelegates.on({
-                    click: function() {
-
-                        self.components.selectedItemView.find('img').attr('src', $(this).data('img'));
-
-                        return false;
-
-                        var that = this,
-                            i = 0;
-
-                        $.each(self.components.itemDelegates, function() {
-                            if (that === this) {
-                                self.setCurrentItem(i+1);
-                                return false;
-                            }
-
-                            i++;
-                        });
-                        return false;
-                    }
-                });
+            if (self.components.delegatesItem.length > 0) {
+                self.components.delegatesItem.on('click', {slider:self}, self.delegatesItemPressedEventHandler);
             }
-            */
+
+
+
+//            if (self.components.itemDelegates.length > 0) {
+//                self.components.itemDelegates.on({
+//                    click: function() {
+//
+//                        self.components.selectedItemView.find('img').attr('src', $(this).data('img'));
+//
+//                        return false;
+//
+//                        var that = this,
+//                            i = 0;
+//
+//                        $.each(self.components.itemDelegates, function() {
+//                            if (that === this) {
+//                                self.setCurrentItem(i+1);
+//                                return false;
+//                            }
+//
+//                            i++;
+//                        });
+//                        return false;
+//                    }
+//                });
+//            }
+
         },
 
         selectItem: function(item) {
@@ -295,15 +298,38 @@ if ( typeof Object.create !== 'function' ) {
 
         },
 
+        setStartStatus: function() {
+
+            var self = this;
+
+            // 초기 스타일 설정
+            // TODO : 일반화 시켜야함. 현재는 fadein/out 만 고려됨
+            if (self.components.items.length > 0) {
+                self.components.items.first().css('display', 'block').css('opacity', 1)
+            }
+
+            // selectedItemView 초기화
+
+
+            // 초기 선택 페이지 초기화 : 리팩토링 필요
+            if (self.options.pageMode === true) {
+                self.setCurrentPage(1); // 페이지는 1부터 시작
+            } else {
+                self.setCurrentItemIndex(0);    // index는 0부터 시작
+            }
+        },
+
         autoSlide: function() {
 
         },
+
 
 
         // EventHandlers
         prevPressedEventHandler: function(event) {
             var slider = event.data.slider;
 
+            console.log('prev clicked');
             if (slider.options.pageMode === true) {
                 slider.moveToPrevPage();
             } else {
@@ -326,26 +352,32 @@ if ( typeof Object.create !== 'function' ) {
                 imgUrl;
 
             // selectedItemView 가 있는 경우, 해당 아이템을 변경시킴
-            // TODO : 리팩토링 필요. api 사용자 입장에서 데이터가 위치한 곳을 좀더 명확하게 정의할것
+            // TODO : 리팩토링 필요. api 사용자 입장에서 데이터가 위치한 곳을 좀더 명확하게 정의할것.
             if (slider.components.selectedItemView.length > 0) {
                 if ($(this).find('img').attr('src') !== undefined) {
                     imgUrl = $(this).find('img').attr('src');
                 } else if ($(this).find('a').data('img-url') !== undefined){
                     imgUrl = $(this).find('a').data('img-url');
                 }
-//                slider.components.selectedItemView.find('img').attr('src', imgUrl);
+                slider.components.selectedItemView.find('img').attr('src', imgUrl);
+
+//                slider.components.selectedItemView.find('img').fadeOut(200, function() {
+//                    slider.components.selectedItemView.find('img').attr('src', imgUrl);
+//                }).fadeIn(200);
+
             }
 
-//            slider.components.selectedItemView.find('img').fadeOut(200, function() {
-//                slider.components.selectedItemView.find('img').attr('src', imgUrl);
-//            }).fadeIn(200);
-
-
-            slider.components.selectedItemView.find('img').fadeTo(1000, 0.30, function() {
-                slider.components.selectedItemView.find('img').attr('src', imgUrl);
-            }).fadeTo(500, 1);
 
             return false;
+        },
+
+        delegatesItemPressedEventHandler: function (event) {
+            // TODO: 현재는 fadein/out 에 특화되어 있음. 일반화 시켜야함
+            var slider = event.data.slider;
+
+            if (slider.components.delegatesItem.length > 0) {
+                
+            }
         }
     }
 
