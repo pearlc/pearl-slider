@@ -4,8 +4,10 @@
 
 /**
  *
+ * deltegate 는 페이징 번호를 위한 기능인가? 아니면 selectedItemView 를 위한 기능인가? 둘다 가능한가? 즉 둘중 하나를 선택해야하는가?
+ * <- pagination 이 있는데 delegate 까지 굳이 있어야 하는 경우는 없을듯. selectedItemView 로 연결하도록 변경
  * TODO : 수정 우선순위
- * 번호 선택시 selectedItemView 컨텐츠 변경하는 기능 추가 (이걸 어떻게 결합시킬것인지 고민해야함)
+ * 번호 선택시 selectedItemView 컨텐츠 변경하는 기능 추가 (이걸 어떻게 결합시킬것인지 고민해야함) <- delegate 랑도 연관 있을듯
  * indexItemView 의 Fade In/Out 효과 적용도 옵션으로 추가.
  * 아이템 직접 눌렀을때 selectedItemView 변경
  * autoSlide
@@ -16,6 +18,7 @@
  * selectedItemView 기능 추가 (아이템 눌렀을때 selectedItem 변경시키는 기능)
  * 좌우 버튼 눌렀을때 selectedItemView 변경 <- 이게 필요한 경우가 있는가? 옵션으로
  * 콜백 커스터마이징시 인자명을 components 말고 slider 로 바꾸는게 더 직관적이지 않나?
+ * 모든 이벤트 핸들러는 유저가 덮어쓸수 있도록 할것
  *
  *
  */
@@ -42,15 +45,15 @@ if ( typeof Object.create !== 'function' ) {
 
     $.fn.simpleSlider.options = {
 
+        // 구성 요소들
         itemSelector: "li",     // 슬라이드 대상이 되는 아이템들
         itemContainerSelector: "ul",    // 슬라이드들을 감사고 있는 container. 이 element의 margin-left를 변경시키는 방법으로 노출될 아이템들이 결정됨
         prevButtonSelector: ".prev",    // "이전" 버튼
         nextButtonSelector: ".next",    // "다음" 버튼
         selectedItemViewSelector: ".selected-item-view", // 선택된 아이템들을 크게 보여주는 panel (아직 완전히 구현되지 않았음)
-        itemSelectCallback: null,
-        itemDelegatesSelector: ".item-delegates",   // 각 아이템의 넘버링 (클릭시 index 를 해당 delegates의 번호에 맞게 변경 해주는 역할)
+//        itemDelegatesSelector: ".item-delegates",   // 각 아이템의 넘버링 (클릭시 index 를 해당 delegates의 번호에 맞게 변경 해주는 역할)
 
-        // auto slide 기능 : 아직 구현되지 않았음
+        // auto slide 기능 : 아직 구현되지 않았음 (selectedItem 을 바꾸는 오토 슬라이드? 아니면 페이징 오토 슬라이드?)
         autoSlide: false,
         autoSliderDirection: 'right',
         autoSlideInterval: 7000,
@@ -64,27 +67,45 @@ if ( typeof Object.create !== 'function' ) {
         slideEaseDuration: 500,
         slideEaseFunction: "swing",  // easeInOutExpo
 
-        // Pagination 관련 옵션
+        // 목록의 Pagination 관련 옵션
         itemCountPerPage: 4, // 한 페이지당 노출될 아이템 개수
-        pageMode: true //  페이지 모드
+        pageMode: true,     //  페이지 모드
+
+        // callback
+        itemSelectCallback: null,
+
+
+        // caching
+        selectedItem: null,
+        selectedItemIndex: 0
     };
 
     var Slider = {
 
         init: function(options, elem) {
             var self = this,
+                standardItemIndex,
                 $standardItem;
 
             self.options = $.extend({}, $.fn.simpleSlider.options, options);
 
             self.bindComponents(elem);
 
+            // 슬라이드 아이템들
             self.itemCount = self.components.items.length;
 
             // 아이템 너비 획득
-            $standardItem = $(self.components.items[1]);
+            if (self.itemCount > 0) {
+                if (self.itemCount > 1) {
+                    standardItemIndex = 1;
+                } else {
+                    standardItemIndex = 0;
+                }
 
-            self.itemElementWidth = parseInt($standardItem.css('margin-left').replace('px', ''), 10) + parseInt($standardItem.css('margin-right').replace('px', ''), 10) + $standardItem.width();
+                $standardItem = $(self.components.items[standardItemIndex]);
+
+                self.itemElementWidth = parseInt($standardItem.css('margin-left').replace('px', ''), 10) + parseInt($standardItem.css('margin-right').replace('px', ''), 10) + $standardItem.width();
+            }
 
             if (self.options.pageMode === true) {
                 self.lastPage = Math.max(1, parseInt( (self.itemCount - 1) / self.options.itemCountPerPage) + 1);
@@ -103,7 +124,7 @@ if ( typeof Object.create !== 'function' ) {
             self.components.selectedItemView = $(elem).find(self.options.selectedItemViewSelector);
             self.components.prevButton = $(elem).find(self.options.prevButtonSelector);
             self.components.nextButton = $(elem).find(self.options.nextButtonSelector);
-            self.components.itemDelegates = $(elem).find(self.options.itemDelegatesSelector);
+//            self.components.itemDelegates = $(elem).find(self.options.itemDelegatesSelector);
 
             // TODO : 이 로직 다른 곳으로 옮길것 (initPagination 같은 함수 만들어서 이동?)
             if (self.options.pageMode === true) {
@@ -118,95 +139,33 @@ if ( typeof Object.create !== 'function' ) {
             var self = this;
 
             if (self.components.prevButton.length > 0) {
-
-                if (self.options.pageMode === true) {
-
-                    // 페이지 이동
-                    self.components.prevButton.on({
-                        click: function() {
-                            self.moveToPrevPage();
-                        }
-                    })
-
-                } else {
-
-                    // 개별 이동
-                    if (0) {
-
-                        // currentIndex, currentItem 개념이 있는 경우
-
-                    } else {
-
-                        // currentIndex, currentItem 개념이 없는 경우
-                        self.components.prevButton.on({
-                            click: function() {
-                                self.moveToPrevItem();
-                            }
-                        })
-
-                    }
-                }
+                self.components.prevButton.on('click', {slider:self}, self.prevPressedEventHandler);
             }
 
             if (self.components.nextButton.length > 0) {
-
-                if (self.options.pageMode === true) {
-
-                    // 페이지 이동
-                    self.components.nextButton.on({
-                        click: function() {
-                            self.moveToNextPage();
-                        }
-                    })
-
-                } else {
-
-                    // 개별 이동
-                    if (0) {
-
-                        // currentIndex, currentItem 개념이 있는 경우
-
-                    } else {
-
-                        // currentIndex, currentItem 개념이 없는 경우
-                        self.components.nextButton.on({
-                            click: function() {
-                                self.moveToNextItem();
-                            }
-                        });
-                    }
-                }
+                self.components.nextButton.on('click', {slider:self}, self.nextPressedEventHandler);
             }
 
-            // 일반화 시킨후 분리할것 (콜백 함수로 replace 가능하도록 수정)
-            if (self.components.selectedItemView.length > 0) {
-
-                if (self.options.itemSelectCallback !== null) {
-                    self.components.items.find("img").on({
-                        click: function() {
-                            self.options.itemSelectCallback(this, self.components);
-                        }
-                    });
-                } else {
-
-                    self.components.items.find("img").on({
-                        click: function() {
-                            self.components.selectedItemView.find('img').attr('src', $(this).attr('src'));
-                        }
-                    });
-                }
+            if (self.components.items.length > 0) {
+                self.components.items.on('click', {slider:self}, self.itemPressedEventHandler);
             }
 
+
+            /*
             if (self.components.itemDelegates.length > 0) {
                 self.components.itemDelegates.on({
                     click: function() {
+
+                        self.components.selectedItemView.find('img').attr('src', $(this).data('img'));
+
+                        return false;
 
                         var that = this,
                             i = 0;
 
                         $.each(self.components.itemDelegates, function() {
                             if (that === this) {
-                                self.setCurrentPage(i+1);
+                                self.setCurrentItem(i+1);
                                 return false;
                             }
 
@@ -216,6 +175,15 @@ if ( typeof Object.create !== 'function' ) {
                     }
                 });
             }
+            */
+        },
+
+        selectItem: function(item) {
+
+        },
+
+        selectItemIndex: function(index) {
+
         },
 
         setCurrentItem: function(index) {
@@ -331,8 +299,53 @@ if ( typeof Object.create !== 'function' ) {
 
         },
 
-        getCurrentItem: function() {
 
+        // EventHandlers
+        prevPressedEventHandler: function(event) {
+            var slider = event.data.slider;
+
+            if (slider.options.pageMode === true) {
+                slider.moveToPrevPage();
+            } else {
+                slider.moveToPrevItem();
+            }
+        },
+
+        nextPressedEventHandler: function(event) {
+            var slider = event.data.slider;
+
+            if (slider.options.pageMode === true) {
+                slider.moveToNextPage();
+            } else {
+                slider.moveToNextItem();
+            }
+        },
+
+        itemPressedEventHandler: function(event) {
+            var slider = event.data.slider,
+                imgUrl;
+
+            // selectedItemView 가 있는 경우, 해당 아이템을 변경시킴
+            // TODO : 리팩토링 필요. api 사용자 입장에서 데이터가 위치한 곳을 좀더 명확하게 정의할것
+            if (slider.components.selectedItemView.length > 0) {
+                if ($(this).find('img').attr('src') !== undefined) {
+                    imgUrl = $(this).find('img').attr('src');
+                } else if ($(this).find('a').data('img-url') !== undefined){
+                    imgUrl = $(this).find('a').data('img-url');
+                }
+//                slider.components.selectedItemView.find('img').attr('src', imgUrl);
+            }
+
+//            slider.components.selectedItemView.find('img').fadeOut(200, function() {
+//                slider.components.selectedItemView.find('img').attr('src', imgUrl);
+//            }).fadeIn(200);
+
+
+            slider.components.selectedItemView.find('img').fadeTo(1000, 0.30, function() {
+                slider.components.selectedItemView.find('img').attr('src', imgUrl);
+            }).fadeTo(500, 1);
+
+            return false;
         }
     }
 
