@@ -64,6 +64,7 @@ if ( typeof Object.create !== 'function' ) {
         autoSlideStopWhenClicked: true,
 
         continuous: true,   // 슬라이드가 끝에 도달했을때, 제일 처음으로 이어질건지 결정하는 flag
+        itemContainerAnimateEffect: 'slide',    // 'slide', 'fade'
 
         slideEaseDuration: 500,
         slideEaseFunction: "swing",  // easeInOutExpo
@@ -152,33 +153,6 @@ if ( typeof Object.create !== 'function' ) {
             if (self.components.delegatesItem.length > 0) {
                 self.components.delegatesItem.on('click', {slider:self}, self.delegatesItemPressedEventHandler);
             }
-
-
-
-//            if (self.components.itemDelegates.length > 0) {
-//                self.components.itemDelegates.on({
-//                    click: function() {
-//
-//                        self.components.selectedItemView.find('img').attr('src', $(this).data('img'));
-//
-//                        return false;
-//
-//                        var that = this,
-//                            i = 0;
-//
-//                        $.each(self.components.itemDelegates, function() {
-//                            if (that === this) {
-//                                self.setCurrentItem(i+1);
-//                                return false;
-//                            }
-//
-//                            i++;
-//                        });
-//                        return false;
-//                    }
-//                });
-//            }
-
         },
 
         selectItem: function(item) {
@@ -288,13 +262,29 @@ if ( typeof Object.create !== 'function' ) {
             }
 
             // Animate the slider
-            (self.components.itemContainer).animate({
-                'margin-left': self.marginLeft + 'px'
-            }, {
-                easing: self.options.slideEaseFunction,
-                duration: self.options.slideEaseDuration,
-                queue: false
-            });
+
+            if (self.options.itemContainerAnimateEffect === 'slide') {
+
+                (self.components.itemContainer).animate({
+                    'margin-left': self.marginLeft + 'px'
+                }, {
+                    easing: self.options.slideEaseFunction,
+                    duration: self.options.slideEaseDuration,
+                    queue: false
+                });
+            } else if (self.options.itemContainerAnimateEffect === 'fade') {
+
+                // TODO : 여기 할 차례
+                /**
+                 * 바꿔야할 부분 세군데
+                 *
+                 * z-index,
+                 * opacity,
+                 * display:none <-> block
+                 *
+                 */
+
+            }
 
         },
 
@@ -304,8 +294,10 @@ if ( typeof Object.create !== 'function' ) {
 
             // 초기 스타일 설정
             // TODO : 일반화 시켜야함. 현재는 fadein/out 만 고려됨
-            if (self.components.items.length > 0) {
-                self.components.items.first().css('display', 'block').css('opacity', 1)
+            if (self.options.itemContainerAnimateEffect === "fade") {
+                if (self.components.items.length > 0) {
+                    self.components.items.first().css('display', 'block').css('opacity', 1)
+                }
             }
 
             // selectedItemView 초기화
@@ -376,7 +368,19 @@ if ( typeof Object.create !== 'function' ) {
             var slider = event.data.slider;
 
             if (slider.components.delegatesItem.length > 0) {
-                
+                var that = this,
+                    i = 0;
+
+                $.each(self.components.delegatesItem, function() {
+                    if (that === this) {
+                        self.setCurrentItem(i);
+                        return false;
+                    }
+
+                    i++;
+                });
+                return false;
+
             }
         }
     }
