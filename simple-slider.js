@@ -66,7 +66,7 @@ if ( typeof Object.create !== 'function' ) {
         continuous: true,   // 슬라이드가 끝에 도달했을때, 제일 처음으로 이어질건지 결정하는 flag
 
         slideEaseDuration: 500,
-        slideEaseFunction: "fade",  // 'swing', 'fade', easeInOutExpo
+        slideEaseFunction: "swing",  // 'swing', 'fade', easeInOutExpo
 
         // 목록의 Pagination 관련 옵션
         itemCountPerPage: 4, // 한 페이지당 노출될 아이템 개수
@@ -129,8 +129,6 @@ if ( typeof Object.create !== 'function' ) {
             self.components.nextButton = $(elem).find(self.options.nextButtonSelector);
             self.components.delegatesList = $(elem).find(self.options.delegatesListSelector);
             self.components.delegatesItem = $(elem).find(self.options.delegatesItemSelector);
-
-//            console.log(self.components.items);
         },
 
         registerEventHandlers: function() {
@@ -264,45 +262,49 @@ if ( typeof Object.create !== 'function' ) {
 
             // Animate the slider
 
-            if (self.options.slideEaseFunction === 'slide') {
+            switch(self.options.slideEaseFunction) {
 
-                (self.components.itemContainer).animate({
-                    'margin-left': self.marginLeft + 'px'
-                }, {
-                    easing: self.options.slideEaseFunction,
-                    duration: self.options.slideEaseDuration,
-                    queue: false
-                });
-            } else if (self.options.slideEaseFunction === 'fade') {
+                case 'swing':
+                    (self.components.itemContainer).animate({
+                        'margin-left': self.marginLeft + 'px'
+                    }, {
+                        easing: self.options.slideEaseFunction,
+                        duration: self.options.slideEaseDuration,
+                        queue: false
+                    });
+                    break;
 
-                var currentItemIndex,
-                    currentItem,
-                    itemToBeUnchosen;
+                case 'fade':
+                    var currentItemIndex,
+                        currentItem,
+                        itemToBeUnchosen;
 
-                self.components.items.each(function(index, elem) {
-                    var zIndex;
+                    self.components.items.each(function(index, elem) {
+                        var zIndex;
 
-                    if ($(elem).css('opacity') == 1) {
-                        itemToBeUnchosen = $(elem);
-                        itemToBeUnchosen.css('z-index', 100);
-                    } else {
-                        zIndex = $(elem).css('z-index');
-                        $(elem).css('z-index', --zIndex);
-                    }
-                    console.log(zIndex);
-                });
+                        if ($(elem).css('opacity') == 1) {
+                            itemToBeUnchosen = $(elem);
+                            itemToBeUnchosen.css('z-index', 100);
+                        } else {
+                            zIndex = $(elem).css('z-index');
+                            $(elem).css('z-index', --zIndex);
+                        }
+                    });
 
-                currentItem = $(self.components.items[self.currentItemIndex]);
-                currentItem.css('display', 'block');
-                currentItem.css('opacity', 1);
+                    currentItem = $(self.components.items[self.currentItemIndex]);
+                    currentItem.css('display', 'block');
+                    currentItem.css('opacity', 1);
 
-                itemToBeUnchosen.animate({
-                    opacity:0
-                }, self.options.slideEaseDuration, function() {
-                    $(this).css('display', 'none');
-                });
+                    itemToBeUnchosen.animate({
+                        opacity:0
+                    }, self.options.slideEaseDuration, function() {
+                        $(this).css('display', 'none');
+                    });
+                    break;
 
-
+                default:
+                    console.log('올바르지 않은 slideEaseFunction');
+                    break;
             }
 
         },
@@ -327,11 +329,9 @@ if ( typeof Object.create !== 'function' ) {
             if (self.options.pageMode === true) {
                 self.currentPage = 1;   // 이렇게 쓰는게 옳은가? setCurrentPage() 를 호출하는게 낫지 않은가? : 만약 그렇다면 함수 호출시 발동되는 animation 효과 없애야함.
                 //self.setCurrentPage(1); // 페이지는 1부터 시작
-                console.log('page');
             } else {
                 self.currentItemIndex = 0;   // 이렇게 쓰는게 옳은가? setCurrentItemIndex() 를 호출하는게 낫지 않은가? : 만약 그렇다면 함수 호출시 발동되는 animation 효과 없애야함.
                 //self.setCurrentItemIndex(0);    // index는 0부터 시작
-                console.log('not page');
             }
         },
 
@@ -345,7 +345,6 @@ if ( typeof Object.create !== 'function' ) {
         prevPressedEventHandler: function(event) {
             var slider = event.data.slider;
 
-            console.log('prev clicked');
             if (slider.options.pageMode === true) {
                 slider.moveToPrevPage();
             } else {
