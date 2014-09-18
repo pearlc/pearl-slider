@@ -46,8 +46,8 @@ if ( typeof Object.create !== 'function' ) {
     $.fn.simpleSlider.options = {
 
         // 구성 요소들
-        itemSelector: "li",     // 슬라이드 대상이 되는 아이템들
         itemContainerSelector: "ul:first",    // 슬라이드들을 감사고 있는 container. 이 element의 margin-left를 변경시키는 방법으로 노출될 아이템들이 결정됨
+        itemSelector: "li",     // 슬라이드 대상이 되는 아이템들
         prevButtonSelector: ".prev",    // "이전" 버튼
         nextButtonSelector: ".next",    // "다음" 버튼
         selectedItemViewSelector: ".selected-item-view", // 선택된 아이템들을 크게 보여주는 panel (아직 완전히 구현되지 않았음)
@@ -64,10 +64,9 @@ if ( typeof Object.create !== 'function' ) {
         autoSlideStopWhenClicked: true,
 
         continuous: true,   // 슬라이드가 끝에 도달했을때, 제일 처음으로 이어질건지 결정하는 flag
-        itemContainerAnimateEffect: 'slide',    // 'slide', 'fade'
 
         slideEaseDuration: 500,
-        slideEaseFunction: "swing",  // easeInOutExpo
+        slideEaseFunction: "fade",  // 'swing', 'fade', easeInOutExpo
 
         // 목록의 Pagination 관련 옵션
         itemCountPerPage: 4, // 한 페이지당 노출될 아이템 개수
@@ -124,7 +123,7 @@ if ( typeof Object.create !== 'function' ) {
             self.components = {};
             self.components.slider = $(elem);   // 콜백 함수들에 slider 인자를 전달하기 위해 사용 <- 맞나?
             self.components.itemContainer = $(elem).find(self.options.itemContainerSelector);
-            self.components.items = $(elem).find(self.options.itemSelector);
+            self.components.items = self.components.itemContainer.find(self.options.itemSelector);
             self.components.selectedItemView = $(elem).find(self.options.selectedItemViewSelector);
             self.components.prevButton = $(elem).find(self.options.prevButtonSelector);
             self.components.nextButton = $(elem).find(self.options.nextButtonSelector);
@@ -163,7 +162,7 @@ if ( typeof Object.create !== 'function' ) {
 
         },
 
-        setCurrentItem: function(index) {
+        setCurrentItem: function() {
 
             // TODO : 미완성, selectedItemView 있을때만 호출되는 메서드
             var self = this;
@@ -174,17 +173,19 @@ if ( typeof Object.create !== 'function' ) {
         setCurrentPage: function(page) {
             var self = this;
 
-            self.currentPage = page;
-
-            self.transition();
+            if (self.currentPage != page) {
+                self.currentPage = page;
+                self.transition();
+            }
         },
 
         setCurrentItemIndex: function(itemIndex) {
             var self = this;
 
-            self.currentItemIndex = itemIndex;
-
-            self.transition();
+            if (self.currentItemIndex != itemIndex) {
+                self.currentItemIndex = itemIndex;
+                self.transition();
+            }
         },
 
         moveToNextPage: function() {
@@ -263,7 +264,7 @@ if ( typeof Object.create !== 'function' ) {
 
             // Animate the slider
 
-            if (self.options.itemContainerAnimateEffect === 'slide') {
+            if (self.options.slideEaseFunction === 'slide') {
 
                 (self.components.itemContainer).animate({
                     'margin-left': self.marginLeft + 'px'
@@ -272,17 +273,35 @@ if ( typeof Object.create !== 'function' ) {
                     duration: self.options.slideEaseDuration,
                     queue: false
                 });
-            } else if (self.options.itemContainerAnimateEffect === 'fade') {
+            } else if (self.options.slideEaseFunction === 'fade') {
 
-                // TODO : 여기 할 차례
-                /**
-                 * 바꿔야할 부분 세군데
-                 *
-                 * z-index,
-                 * opacity,
-                 * display:none <-> block
-                 *
-                 */
+                var currentItemIndex,
+                    currentItem,
+                    itemToBeUnchosen;
+
+                self.components.items.each(function(index, elem) {
+                    var zIndex;
+
+                    if ($(elem).css('opacity') == 1) {
+                        itemToBeUnchosen = $(elem);
+                        itemToBeUnchosen.css('z-index', 100);
+                    } else {
+                        zIndex = $(elem).css('z-index');
+                        $(elem).css('z-index', --zIndex);
+                    }
+                    console.log(zIndex);
+                });
+
+                currentItem = $(self.components.items[self.currentItemIndex]);
+                currentItem.css('display', 'block');
+                currentItem.css('opacity', 1);
+
+                itemToBeUnchosen.animate({
+                    opacity:0
+                }, self.options.slideEaseDuration, function() {
+                    $(this).css('display', 'none');
+                });
+
 
             }
 
@@ -294,7 +313,8 @@ if ( typeof Object.create !== 'function' ) {
 
             // 초기 스타일 설정
             // TODO : 일반화 시켜야함. 현재는 fadein/out 만 고려됨
-            if (self.options.itemContainerAnimateEffect === "fade") {
+            if (self.options.slideEaseFunction === "fade") {
+                self.components.items.css('z-index', 100);
                 if (self.components.items.length > 0) {
                     self.components.items.first().css('display', 'block').css('opacity', 1)
                 }
@@ -305,9 +325,13 @@ if ( typeof Object.create !== 'function' ) {
 
             // 초기 선택 페이지 초기화 : 리팩토링 필요
             if (self.options.pageMode === true) {
-                self.setCurrentPage(1); // 페이지는 1부터 시작
+                self.currentPage = 1;   // 이렇게 쓰는게 옳은가? setCurrentPage() 를 호출하는게 낫지 않은가? : 만약 그렇다면 함수 호출시 발동되는 animation 효과 없애야함.
+                //self.setCurrentPage(1); // 페이지는 1부터 시작
+                console.log('page');
             } else {
-                self.setCurrentItemIndex(0);    // index는 0부터 시작
+                self.currentItemIndex = 0;   // 이렇게 쓰는게 옳은가? setCurrentItemIndex() 를 호출하는게 낫지 않은가? : 만약 그렇다면 함수 호출시 발동되는 animation 효과 없애야함.
+                //self.setCurrentItemIndex(0);    // index는 0부터 시작
+                console.log('not page');
             }
         },
 
@@ -371,12 +395,11 @@ if ( typeof Object.create !== 'function' ) {
                 var that = this,
                     i = 0;
 
-                $.each(self.components.delegatesItem, function() {
+                $.each(slider.components.delegatesItem, function() {
                     if (that === this) {
-                        self.setCurrentItem(i);
+                        slider.setCurrentItemIndex(i);
                         return false;
                     }
-
                     i++;
                 });
                 return false;
