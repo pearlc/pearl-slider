@@ -11,6 +11,7 @@
  * indexItemView 의 Fade In/Out 효과 적용도 옵션으로 추가.
  * 아이템 직접 눌렀을때 selectedItemView 변경
  * autoSlide
+ * gulp 와의 연동 깔끔하게 바꿀것 (버전명이라든지.. 이런것을 고려해서 배포 자동화 하려면 어떻게 해야하는가?)
  * setCurrentPage 등의 함수들의 edge 값 검사후 제한 값 넘어가지 않도록 확실히 제한.
  * 각 elements 들의 default 값들이 reasonable 한지 따져볼것
  * 오류처리 : 절대 두개가 되면 안되는 것들에 대해 select 후 적절한 오류메시지 출력 (예를들면 itemContainerSelector 를 가져와 보니 두개 이상이라던가.. 이런 경우)
