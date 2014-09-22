@@ -120,6 +120,10 @@ if ( typeof Object.create !== 'function' ) {
             self.registerEventHandlers();
 
             self.setStartStatus();
+
+            if (self.options.autoSlide === true) {
+                self.autoSlide();
+            }
         },
 
         bindComponents: function(elem) {
@@ -176,6 +180,8 @@ if ( typeof Object.create !== 'function' ) {
         setCurrentPage: function(page) {
             var self = this;
 
+            // TODO : page 값 범위 안에 있는지 검사
+
             if (self.currentPage != page) {
                 self.currentPage = page;
                 self.transition();
@@ -184,6 +190,10 @@ if ( typeof Object.create !== 'function' ) {
 
         setCurrentItemIndex: function(itemIndex) {
             var self = this;
+
+            if (itemIndex < 0 || itemIndex >= self.components.items.length) {
+                itemIndex = 0;
+            }
 
             if (self.currentItemIndex != itemIndex) {
                 self.currentItemIndex = itemIndex;
@@ -290,7 +300,7 @@ if ( typeof Object.create !== 'function' ) {
 
                         if ($(elem).css('opacity') == 1) {
                             itemToBeUnchosen = $(elem);
-                            itemToBeUnchosen.css('z-index', 100);
+                            itemToBeUnchosen.css('z-index', 20);
                         } else {
                             zIndex = $(elem).css('z-index');
                             $(elem).css('z-index', --zIndex);
@@ -300,7 +310,6 @@ if ( typeof Object.create !== 'function' ) {
                     currentItem = $(self.components.items[self.currentItemIndex]);
                     currentItem.css('display', 'block');
                     currentItem.css('opacity', 1);
-//                    currentItem.css('z-index', 100);
 
                     // delegate item css
                     if (self.components.delegatesItems.length > 0) {
@@ -331,13 +340,13 @@ if ( typeof Object.create !== 'function' ) {
             // TODO : 일반화 시켜야함. 현재는 fadein/out 만 고려됨
             if (self.options.slideEaseFunction === "fade") {
                 if (self.components.items.length > 0) {
-                    self.components.items.css('display', 'none').css('opacity', 0).css('z-index', 100).css('position', 'absolute');
+                    self.components.items.css('display', 'none').css('opacity', 0).css('z-index', 20).css('position', 'absolute');
                     self.components.items.first().css('display', 'block').css('opacity', 1);
                 }
 
                 // TODO : 좀더 좋은 방법 없는지 고민
                 if (self.components.delegatesList.length > 0) {
-                    self.components.delegatesList.css('z-index', 101);
+                    self.components.delegatesList.css('z-index', 21);
                 }
             }
 
@@ -348,10 +357,9 @@ if ( typeof Object.create !== 'function' ) {
             if (self.options.pageMode === true) {
                 self.currentPage = 1;   // 이렇게 쓰는게 옳은가? setCurrentPage() 를 호출하는게 낫지 않은가? : 만약 그렇다면 함수 호출시 발동되는 animation 효과 없애야함.
                 //self.setCurrentPage(1); // 페이지는 1부터 시작
-            } else {
-                self.currentItemIndex = 0;   // 이렇게 쓰는게 옳은가? setCurrentItemIndex() 를 호출하는게 낫지 않은가? : 만약 그렇다면 함수 호출시 발동되는 animation 효과 없애야함.
-                //self.setCurrentItemIndex(0);    // index는 0부터 시작
             }
+            self.currentItemIndex = 0;   // 이렇게 쓰는게 옳은가? setCurrentItemIndex() 를 호출하는게 낫지 않은가? : 만약 그렇다면 함수 호출시 발동되는 animation 효과 없애야함.
+            //self.setCurrentItemIndex(0);    // index는 0부터 시작
 
             if (self.components.delegatesItems.length > 0) {
                 $(self.components.delegatesItems[0]).addClass('on');
@@ -359,7 +367,21 @@ if ( typeof Object.create !== 'function' ) {
         },
 
         autoSlide: function() {
+            var self = this;
 
+            // 오토슬라이드 주기가 애니메이션 전환시간보다 길수 없음
+            if (self.options.autoSlideInterval < self.options.slideEaseDuration) {
+                self.options.autoSlideInterval = self.options.slideEaseDuration;
+            }
+
+            // TODO : 현재는 items 만 적용중. 추후 selectedItemView 에도 오토 슬라이드 기능 적용되도록 할것 (타임아웃되면 selectedItemView 도 바뀌도록)
+            self.autoSlideTimeout = setTimeout(function() {
+                var currentItemIndex = self.currentItemIndex;
+
+                // TODO : nextItemIndex 구하는 함수를 명시적으로 호출하는게 더 좋을듯.
+                self.setCurrentItemIndex(currentItemIndex + 1);
+                self.autoSlide();
+            }, self.options.autoSlideInterval);
         },
 
 
