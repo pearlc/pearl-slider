@@ -403,10 +403,11 @@ if ( typeof Object.create !== 'function' ) {
 //                    slider.components.selectedItemView.find('img').attr('src', imgUrl);
 //                }).fadeIn(200);
 
+                return false;
             }
 
+            // 이하 selectedItemView가 없는경우, (예를들면, 각 item 의 a 태그에 href가 걸려있는 경우.. 등
 
-            return false;
         },
 
         delegatesItemPressedEventHandler: function (event) {
