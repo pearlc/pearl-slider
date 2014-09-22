@@ -7,6 +7,8 @@
  * deltegate 는 페이징 번호를 위한 기능인가? 아니면 selectedItemView 를 위한 기능인가? 둘다 가능한가? 즉 둘중 하나를 선택해야하는가?
  * <- pagination 이 있는데 delegate 까지 굳이 있어야 하는 경우는 없을듯. selectedItemView 로 연결하도록 변경
  * TODO : 수정 우선순위
+ * itemSelector 는 itemContainerSelector 안에서 찾는데 delegateItem은 delegateList 안에서 찾지 않음. 이거 통일 시켜야 할듯. (delegateList, itemContainer <- 이 이름에 대해서도 고민해볼것)
+ * delegate 에도 selectedItem 효과 적용
  * 번호 선택시 selectedItemView 컨텐츠 변경하는 기능 추가 (이걸 어떻게 결합시킬것인지 고민해야함) <- delegate 랑도 연관 있을듯
  * indexItemView 의 Fade In/Out 효과 적용도 옵션으로 추가.
  * 아이템 직접 눌렀을때 selectedItemView 변경
@@ -20,6 +22,8 @@
  * 좌우 버튼 눌렀을때 selectedItemView 변경 <- 이게 필요한 경우가 있는가? 옵션으로
  * 콜백 커스터마이징시 인자명을 components 말고 slider 로 바꾸는게 더 직관적이지 않나?
  * 모든 이벤트 핸들러는 유저가 덮어쓸수 있도록 할것
+ * 초기화 직후에 유저가 호출할수 있는 callback 함수 전달받을수 있게 할것
+ * 이미지의 z-index로 인해서 그 위에 올라가 있는 delegate 들이 밑으로 감춰짐. 이거 어찌 해결할까
  *
  *
  */
@@ -52,7 +56,7 @@ if ( typeof Object.create !== 'function' ) {
         prevButtonSelector: ".prev",    // "이전" 버튼
         nextButtonSelector: ".next",    // "다음" 버튼
         selectedItemViewSelector: ".selected-item-view", // 선택된 아이템들을 크게 보여주는 panel (아직 완전히 구현되지 않았음)
-        delegatesListSelector: ".delegates-list",
+        delegatesListSelector: ".delegates-list",   // 넘버링 ui의 z-index 를 적용하기 위해서는 존재해야함.
         delegatesItemSelector: ".delegates-item",   // 각 아이템의 넘버링 (클릭시 index 를 해당 delegates의 번호에 맞게 변경 해주는 역할)
 
         // auto slide 기능 : 아직 구현되지 않았음 (selectedItem 을 바꾸는 오토 슬라이드? 아니면 페이징 오토 슬라이드?)
@@ -129,7 +133,7 @@ if ( typeof Object.create !== 'function' ) {
             self.components.prevButton = $(elem).find(self.options.prevButtonSelector);
             self.components.nextButton = $(elem).find(self.options.nextButtonSelector);
             self.components.delegatesList = $(elem).find(self.options.delegatesListSelector);
-            self.components.delegatesItem = $(elem).find(self.options.delegatesItemSelector);
+            self.components.delegatesItems = $(elem).find(self.options.delegatesItemSelector);
         },
 
         registerEventHandlers: function() {
@@ -148,8 +152,8 @@ if ( typeof Object.create !== 'function' ) {
                 self.components.items.on('click', {slider:self}, self.itemPressedEventHandler);
             }
 
-            if (self.components.delegatesItem.length > 0) {
-                self.components.delegatesItem.on('click', {slider:self}, self.delegatesItemPressedEventHandler);
+            if (self.components.delegatesItems.length > 0) {
+                self.components.delegatesItems.on('click', {slider:self}, self.delegatesItemPressedEventHandler);
             }
         },
 
@@ -278,7 +282,8 @@ if ( typeof Object.create !== 'function' ) {
                 case 'fade':
                     var currentItemIndex,
                         currentItem,
-                        itemToBeUnchosen;
+                        itemToBeUnchosen,
+                        currentItemDelegate;
 
                     self.components.items.each(function(index, elem) {
                         var zIndex;
@@ -295,6 +300,14 @@ if ( typeof Object.create !== 'function' ) {
                     currentItem = $(self.components.items[self.currentItemIndex]);
                     currentItem.css('display', 'block');
                     currentItem.css('opacity', 1);
+//                    currentItem.css('z-index', 100);
+
+                    // delegate item css
+                    if (self.components.delegatesItems.length > 0) {
+                        currentItemDelegate = $(self.components.delegatesItems[self.currentItemIndex]);
+                        self.components.delegatesItems.removeClass('on');   // TODO : 클라스 이름도 옵션에서 설정 가능하도록 할것 (그 전에 그게 최선인가 고민해볼것)
+                        currentItemDelegate.addClass('on');
+                    }
 
                     itemToBeUnchosen.animate({
                         opacity:0
@@ -317,9 +330,14 @@ if ( typeof Object.create !== 'function' ) {
             // 초기 스타일 설정
             // TODO : 일반화 시켜야함. 현재는 fadein/out 만 고려됨
             if (self.options.slideEaseFunction === "fade") {
-                self.components.items.css('z-index', 100);
                 if (self.components.items.length > 0) {
-                    self.components.items.first().css('display', 'block').css('opacity', 1)
+                    self.components.items.css('display', 'none').css('opacity', 0).css('z-index', 100).css('position', 'absolute');
+                    self.components.items.first().css('display', 'block').css('opacity', 1);
+                }
+
+                // TODO : 좀더 좋은 방법 없는지 고민
+                if (self.components.delegatesList.length > 0) {
+                    self.components.delegatesList.css('z-index', 101);
                 }
             }
 
@@ -333,6 +351,10 @@ if ( typeof Object.create !== 'function' ) {
             } else {
                 self.currentItemIndex = 0;   // 이렇게 쓰는게 옳은가? setCurrentItemIndex() 를 호출하는게 낫지 않은가? : 만약 그렇다면 함수 호출시 발동되는 animation 효과 없애야함.
                 //self.setCurrentItemIndex(0);    // index는 0부터 시작
+            }
+
+            if (self.components.delegatesItems.length > 0) {
+                $(self.components.delegatesItems[0]).addClass('on');
             }
         },
 
@@ -391,11 +413,11 @@ if ( typeof Object.create !== 'function' ) {
             // TODO: 현재는 fadein/out 에 특화되어 있음. 일반화 시켜야함
             var slider = event.data.slider;
 
-            if (slider.components.delegatesItem.length > 0) {
+            if (slider.components.delegatesItems.length > 0) {
                 var that = this,
                     i = 0;
 
-                $.each(slider.components.delegatesItem, function() {
+                $.each(slider.components.delegatesItems, function() {
                     if (that === this) {
                         slider.setCurrentItemIndex(i);
                         return false;
