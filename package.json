@@ -1,8 +1,8 @@
 {
-  "name": "simple-slider",
+  "name": "pearl-slider",
   "version": "0.0.1",
   "description": "Easy slider js project",
-  "main": "simple-slider.js",
+  "main": "pearl-slider.js",
   "dependencies": {},
   "devDependencies": {
     "gulp": "^3.8.8",
@@ -14,7 +14,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/pearlc/simple-slider.git"
+    "url": "https://github.com/pearlc/pearl-slider.git"
   },
   "keywords": [
     "slider"
@@ -22,7 +22,7 @@
   "author": "pearlc",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/pearlc/simple-slider/issues"
+    "url": "https://github.com/pearlc/pearl-slider/issues"
   },
-  "homepage": "https://github.com/pearlc/simple-slider"
+  "homepage": "https://github.com/pearlc/pearl-slider"
 }
