@@ -1,7 +1,16 @@
 // include gulp
-var gulp = require('gulp');
-var concat = require('gulp-concat');
-var uglify = require('gulp-uglify');
+var gulp = require('gulp'),
+    concat = require('gulp-concat'),
+    uglify = require('gulp-uglify'),
+    jshint = require('gulp-jshint'),
+    stylish = require('jshint-stylish');
+
+
+gulp.task('analysis', function() {
+    gulp.src('src/*.js')
+        .pipe(jshint())
+        .pipe(jshint.reporter(stylish));
+});
 
 gulp.task('compress', function() {
     gulp.src('src/*.js')
@@ -10,4 +19,4 @@ gulp.task('compress', function() {
         .pipe(gulp.dest('dist/'));
 });
 
-gulp.task('default', ['compress']);
+gulp.task('default', ['analysis', 'compress']);
