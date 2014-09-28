@@ -2,16 +2,18 @@
     "browser": true,
     "node": true,
 
+    "maxerr": 50,
     "bitwise": true,
     "camelcase": true,
     "curly": true,
     "eqeqeq": true,
     "es3": true,
+    "forin": true,
     "immed": true,
     "undef": true,
     "unused": true,
 
     "globals": {
-//        "jQuery": true
+        "jQuery": true
     }
 }
