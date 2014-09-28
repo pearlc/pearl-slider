@@ -2,14 +2,89 @@
 <html>
 <head>
     <meta charset="utf-8">
+
+    <!-- Bootstrap -->
     <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
     <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+    <!-- Pearl Slider -->
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="src/pearl-slider.js"></script>
 
     <title>Pearl Slider Demo</title>
 </head>
 <body>
-<div>
-    Pearl Slider
+<div class="container col-md-6 col-md-offset-3">
+    <h1>Pearl Slider Demo</h1>
+    <hr>
+
+    <h4>List Slider with Preview</h4>
+    <div id="list-slider-with-preview">
+        <img id="list-slider-with-preview-preview" src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Garen_0.jpg" />
+        <ul>
+            <li name="photo_item">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Garen_0.jpg" />
+            </li>
+            <li name="photo_item">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Garen_1.jpg" />
+            </li>
+            <li name="photo_item">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Garen_2.jpg" />
+            </li>
+            <li name="photo_item">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Garen_3.jpg" />
+            </li>
+            <li name="photo_item">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Garen_4.jpg" />
+            </li>
+            <li name="photo_item">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Garen_5.jpg" />
+            </li>
+            <li name="photo_item">
+                <img src="http://ddragon.leagueoflegends.com/cdn/img/champion/splash/Garen_6.jpg" />
+            </li>
+        </ul>
+    </div>
+
+    <div>
+        <h4>Next Demo</h4>
+        <ul class="list-group">
+            <li class="list-group-item">item 1</li>
+            <li class="list-group-item">item 2</li>
+        </ul>
+    </div>
 </div>
 </body>
+
+<style>
+
+    #list-slider-with-preview
+    {
+        border: 1px solid black;
+        overflow: hidden;
+    }
+
+    #list-slider-with-preview-preview {
+        width:600px;
+    }
+
+    #list-slider-with-preview ul{
+        width:2000px;
+    }
+
+    #list-slider-with-preview li{
+        display: inline;
+        list-style-type: none;
+    }
+
+    #list-slider-with-preview li img {
+        width: 100px;
+    }
+
+
+</style>
+<script>
+
+</script>
+
 </html>
