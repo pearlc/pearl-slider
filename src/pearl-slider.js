@@ -6,6 +6,12 @@
  *
  * deltegate 는 페이징 번호를 위한 기능인가? 아니면 selectedItemView 를 위한 기능인가? 둘다 가능한가? 즉 둘중 하나를 선택해야하는가?
  * <- pagination 이 있는데 delegate 까지 굳이 있어야 하는 경우는 없을듯. selectedItemView 로 연결하도록 변경
+ *
+ * Modle 을 분리 시켜서 직접 html inject 를 하는것이 옳은지 고민해볼것. 이래야 사용자 입장에서 일할 거리가 적어짐..
+ * (경우에 따라서는 더 많아짐. 지금 생각해볼때 가장 문제가 되는 부분은 자동으로 element inject를 하게 된다면 이런 element 등의 이벤트 캐치를 할수 있는 방법이 마땅치 않으므로
+ *  callback 함수 등을 custom 할수있는 법을 마련해줘야 할듯)
+ *
+ *
  * TODO : 수정 우선순위
  * itemSelector 는 itemContainerSelector 안에서 찾는데 delegateItem은 delegateList 안에서 찾지 않음. 이거 통일 시켜야 할듯. (delegateList, itemContainer <- 이 이름에 대해서도 고민해볼것)
  * delegate 에도 selectedItem 효과 적용
@@ -29,21 +35,22 @@
  */
 
 // Utility for creating objects in older browsers
-if ( typeof Object.create !== 'function' ) {
-    Object.create = function( obj ) {
+if (typeof Object.create !== 'function') {
+    Object.create = function (obj) {
+        'use strict';
         function F() {}
         F.prototype = obj;
         return new F();
     };
 }
 
-(function( $, window, document, undefined ) {
+(function ($, window, document, undefined) {
+    'use strict';
+    $.fn.simpleSlider = function (options) {
+        return this.each(function () {
 
-    $.fn.simpleSlider = function( options ) {
-        return this.each(function() {
-
-            var slider = Object.create( Slider );
-            slider.init( options, this );
+            var slider = Object.create(Slider);
+            slider.init(options, this);
 
         });
     };
@@ -88,7 +95,7 @@ if ( typeof Object.create !== 'function' ) {
 
     var Slider = {
 
-        init: function(options, elem) {
+        init: function (options, elem) {
             var self = this,
                 standardItemIndex,
                 $standardItem;
@@ -114,7 +121,7 @@ if ( typeof Object.create !== 'function' ) {
             }
 
             if (self.options.pageMode === true) {
-                self.lastPage = Math.max(1, parseInt( (self.itemCount - 1) / self.options.itemCountPerPage) + 1);
+                self.lastPage = Math.max(1, parseInt((self.itemCount - 1) / self.options.itemCountPerPage, 10) + 1);
             }
 
             self.registerEventHandlers();
@@ -126,7 +133,7 @@ if ( typeof Object.create !== 'function' ) {
             }
         },
 
-        bindComponents: function(elem) {
+        bindComponents: function (elem) {
             var self = this;
 
             self.components = {};
@@ -140,36 +147,36 @@ if ( typeof Object.create !== 'function' ) {
             self.components.delegatesItems = $(elem).find(self.options.delegatesItemSelector);
         },
 
-        registerEventHandlers: function() {
+        registerEventHandlers: function () {
 
             var self = this;
 
             if (self.components.prevButton.length > 0) {
-                self.components.prevButton.on('click', {slider:self}, self.prevPressedEventHandler);
+                self.components.prevButton.on('click', {slider: self}, self.prevPressedEventHandler);
             }
 
             if (self.components.nextButton.length > 0) {
-                self.components.nextButton.on('click', {slider:self}, self.nextPressedEventHandler);
+                self.components.nextButton.on('click', {slider: self}, self.nextPressedEventHandler);
             }
 
             if (self.components.items.length > 0) {
-                self.components.items.on('click', {slider:self}, self.itemPressedEventHandler);
+                self.components.items.on('click', {slider: self}, self.itemPressedEventHandler);
             }
 
             if (self.components.delegatesItems.length > 0) {
-                self.components.delegatesItems.on('click', {slider:self}, self.delegatesItemPressedEventHandler);
+                self.components.delegatesItems.on('click', {slider: self}, self.delegatesItemPressedEventHandler);
             }
         },
 
-        selectItem: function(item) {
-
+        selectItem: function (item) {
+            window.console.log(item);
         },
 
-        selectItemIndex: function(index) {
-
+        selectItemIndex: function (index) {
+            window.console.log(index);
         },
 
-        setCurrentItem: function() {
+        setCurrentItem: function () {
 
             // TODO : 미완성, selectedItemView 있을때만 호출되는 메서드
             var self = this;
@@ -177,31 +184,31 @@ if ( typeof Object.create !== 'function' ) {
             self.transition();
         },
 
-        setCurrentPage: function(page) {
+        setCurrentPage: function (page) {
             var self = this;
 
             // TODO : page 값 범위 안에 있는지 검사
 
-            if (self.currentPage != page) {
+            if (self.currentPage !== page) {
                 self.currentPage = page;
                 self.transition();
             }
         },
 
-        setCurrentItemIndex: function(itemIndex) {
+        setCurrentItemIndex: function (itemIndex) {
             var self = this;
 
             if (itemIndex < 0 || itemIndex >= self.components.items.length) {
                 itemIndex = 0;
             }
 
-            if (self.currentItemIndex != itemIndex) {
+            if (self.currentItemIndex !== itemIndex) {
                 self.currentItemIndex = itemIndex;
                 self.transition();
             }
         },
 
-        moveToNextPage: function() {
+        moveToNextPage: function () {
 
             var self = this,
                 nextPage = self.currentPage;
@@ -216,12 +223,13 @@ if ( typeof Object.create !== 'function' ) {
                     nextPage = 1;
                 } else {
                     // nextPage 변경하지 않음
+                    window.console.log(nextPage);
                 }
             }
             self.setCurrentPage(nextPage);
         },
 
-        moveToPrevPage: function() {
+        moveToPrevPage: function () {
 
             var self = this,
                 prevPage = self.currentPage;
@@ -234,16 +242,16 @@ if ( typeof Object.create !== 'function' ) {
                     prevPage = self.lastPage;
                 } else {
                     // prevPage 변경하지 않음
+                    window.console.log(prevPage);
                 }
             }
 
             self.setCurrentPage(prevPage);
         },
 
-        moveToNextItem: function() {
-            var self = this;
-
-            var nextItemIndex = self.currentItemIndex + 1;
+        moveToNextItem: function () {
+            var self = this,
+                nextItemIndex = self.currentItemIndex + 1;
 
             if (nextItemIndex >= (self.itemCount - self.options.itemCountPerPage + 1)) {
                 nextItemIndex = 0;
@@ -252,10 +260,9 @@ if ( typeof Object.create !== 'function' ) {
             self.setCurrentItemIndex(nextItemIndex);
         },
 
-        moveToPrevItem: function() {
-            var self = this;
-
-            var prevItemIndex = self.currentItemIndex - 1;
+        moveToPrevItem: function () {
+            var self = this,
+                prevItemIndex = self.currentItemIndex - 1;
 
             if (prevItemIndex < 0) {
                 prevItemIndex = self.itemCount - (self.options.itemCountPerPage);
@@ -265,74 +272,72 @@ if ( typeof Object.create !== 'function' ) {
         },
 
 
-        transition: function() {
+        transition: function () {
 
             var self = this;
 
             if (self.options.pageMode === true) {
-                self.marginLeft = -((self.currentPage-1) * self.options.itemCountPerPage * self.itemElementWidth );
+                self.marginLeft = -((self.currentPage - 1) * self.options.itemCountPerPage * self.itemElementWidth);
             } else {
-                self.marginLeft = -(self.currentItemIndex * self.itemElementWidth );
+                self.marginLeft = -(self.currentItemIndex * self.itemElementWidth);
             }
 
             // Animate the slider
 
-            switch(self.options.slideEaseFunction) {
+            switch (self.options.slideEaseFunction) {
+            case 'swing':
+                (self.components.itemContainer).animate({
+                    'margin-left': self.marginLeft + 'px'
+                }, {
+                    easing: self.options.slideEaseFunction,
+                    duration: self.options.slideEaseDuration,
+                    queue: false
+                });
+                break;
 
-                case 'swing':
-                    (self.components.itemContainer).animate({
-                        'margin-left': self.marginLeft + 'px'
-                    }, {
-                        easing: self.options.slideEaseFunction,
-                        duration: self.options.slideEaseDuration,
-                        queue: false
-                    });
-                    break;
+            case 'fade':
+                var currentItem,
+                    itemToBeUnchosen,
+                    currentItemDelegate;
 
-                case 'fade':
-                    var currentItemIndex,
-                        currentItem,
-                        itemToBeUnchosen,
-                        currentItemDelegate;
+                self.components.items.each(function (index, elem) {
+                    var zIndex;
 
-                    self.components.items.each(function(index, elem) {
-                        var zIndex;
-
-                        if ($(elem).css('opacity') == 1) {
-                            itemToBeUnchosen = $(elem);
-                            itemToBeUnchosen.css('z-index', 20);
-                        } else {
-                            zIndex = $(elem).css('z-index');
-                            $(elem).css('z-index', --zIndex);
-                        }
-                    });
-
-                    currentItem = $(self.components.items[self.currentItemIndex]);
-                    currentItem.css('display', 'block');
-                    currentItem.css('opacity', 1);
-
-                    // delegate item css
-                    if (self.components.delegatesItems.length > 0) {
-                        currentItemDelegate = $(self.components.delegatesItems[self.currentItemIndex]);
-                        self.components.delegatesItems.removeClass('on');   // TODO : 클라스 이름도 옵션에서 설정 가능하도록 할것 (그 전에 그게 최선인가 고민해볼것)
-                        currentItemDelegate.addClass('on');
+                    if ($(elem).css('opacity') === '1') {
+                        itemToBeUnchosen = $(elem);
+                        itemToBeUnchosen.css('z-index', 20);
+                    } else {
+                        zIndex = $(elem).css('z-index');
+                        $(elem).css('z-index', --zIndex);
                     }
+                });
 
-                    itemToBeUnchosen.animate({
-                        opacity:0
-                    }, self.options.slideEaseDuration, function() {
-                        $(this).css('display', 'none');
-                    });
-                    break;
+                currentItem = $(self.components.items[self.currentItemIndex]);
+                currentItem.css('display', 'block');
+                currentItem.css('opacity', 1);
 
-                default:
-                    console.log('올바르지 않은 slideEaseFunction');
-                    break;
+                // delegate item css
+                if (self.components.delegatesItems.length > 0) {
+                    currentItemDelegate = $(self.components.delegatesItems[self.currentItemIndex]);
+                    self.components.delegatesItems.removeClass('on');   // TODO : 클라스 이름도 옵션에서 설정 가능하도록 할것 (그 전에 그게 최선인가 고민해볼것)
+                    currentItemDelegate.addClass('on');
+                }
+
+                itemToBeUnchosen.animate({
+                    opacity: 0
+                }, self.options.slideEaseDuration, function () {
+                    $(this).css('display', 'none');
+                });
+                break;
+
+            default:
+                window.console.log('올바르지 않은 slideEaseFunction');
+                break;
             }
 
         },
 
-        setStartStatus: function() {
+        setStartStatus: function () {
 
             var self = this;
 
@@ -366,7 +371,7 @@ if ( typeof Object.create !== 'function' ) {
             }
         },
 
-        autoSlide: function() {
+        autoSlide: function () {
             var self = this;
 
             // 오토슬라이드 주기가 애니메이션 전환시간보다 길수 없음
@@ -375,7 +380,7 @@ if ( typeof Object.create !== 'function' ) {
             }
 
             // TODO : 현재는 items 만 적용중. 추후 selectedItemView 에도 오토 슬라이드 기능 적용되도록 할것 (타임아웃되면 selectedItemView 도 바뀌도록)
-            self.autoSlideTimeout = setTimeout(function() {
+            self.autoSlideTimeout = setTimeout(function () {
                 var currentItemIndex = self.currentItemIndex;
 
                 // TODO : nextItemIndex 구하는 함수를 명시적으로 호출하는게 더 좋을듯.
@@ -387,7 +392,7 @@ if ( typeof Object.create !== 'function' ) {
 
 
         // EventHandlers
-        prevPressedEventHandler: function(event) {
+        prevPressedEventHandler: function (event) {
             var slider = event.data.slider;
 
             if (slider.options.pageMode === true) {
@@ -397,7 +402,7 @@ if ( typeof Object.create !== 'function' ) {
             }
         },
 
-        nextPressedEventHandler: function(event) {
+        nextPressedEventHandler: function (event) {
             var slider = event.data.slider;
 
             if (slider.options.pageMode === true) {
@@ -407,7 +412,7 @@ if ( typeof Object.create !== 'function' ) {
             }
         },
 
-        itemPressedEventHandler: function(event) {
+        itemPressedEventHandler: function (event) {
             var slider = event.data.slider,
                 imgUrl;
 
@@ -416,12 +421,12 @@ if ( typeof Object.create !== 'function' ) {
             if (slider.components.selectedItemView.length > 0) {
                 if ($(this).find('img').attr('src') !== undefined) {
                     imgUrl = $(this).find('img').attr('src');
-                } else if ($(this).find('a').data('img-url') !== undefined){
+                } else if ($(this).find('a').data('img-url') !== undefined) {
                     imgUrl = $(this).find('a').data('img-url');
                 }
                 slider.components.selectedItemView.find('img').attr('src', imgUrl);
 
-//                slider.components.selectedItemView.find('img').fadeOut(200, function() {
+//                slider.components.selectedItemView.find('img').fadeOut(200, function () {
 //                    slider.components.selectedItemView.find('img').attr('src', imgUrl);
 //                }).fadeIn(200);
 
@@ -434,13 +439,12 @@ if ( typeof Object.create !== 'function' ) {
 
         delegatesItemPressedEventHandler: function (event) {
             // TODO: 현재는 fadein/out 에 특화되어 있음. 일반화 시켜야함
-            var slider = event.data.slider;
+            var slider = event.data.slider,
+                that = this,
+                i = 0;
 
             if (slider.components.delegatesItems.length > 0) {
-                var that = this,
-                    i = 0;
-
-                $.each(slider.components.delegatesItems, function() {
+                $.each(slider.components.delegatesItems, function () {
                     if (that === this) {
                         slider.setCurrentItemIndex(i);
                         return false;
@@ -451,6 +455,6 @@ if ( typeof Object.create !== 'function' ) {
 
             }
         }
-    }
+    };
 
-})(jQuery, window, document);
+}) (jQuery, window, document);
